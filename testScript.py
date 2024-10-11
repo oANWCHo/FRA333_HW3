@@ -22,6 +22,7 @@ d_4 = 0.109
 d_5 = 0.093
 d_6 = 0.082
 
+# make a DH-Parameter
 robot = rtb.DHRobot(
     [
         rtb.RevoluteMDH(d=d_1, offset=pi), # joint 1
@@ -35,44 +36,54 @@ robot = rtb.DHRobot(
 #===========================================<ตรวจคำตอบข้อ 1>====================================================#
 #code here
 def Proof_endEffectorJacobianHW3()->bool:
-    r1 = random.uniform(0,pi)
-    r2 = random.uniform(0,pi)
-    r3 = random.uniform(0,pi)
 
-    print(r1,r2,r3)
+    # Random each joint's angle
+    q1 = random.uniform(0,pi)
+    q2 = random.uniform(0,pi)
+    q3 = random.uniform(0,pi)
 
-    q = [r1,r2,r3]
-    print(robot.jacob0(q),"\n", m.endEffectorJacobianHW3(q))
+    print(q1,q2,q3)
 
+    q = [q1,q2,q3]
+    print(robot.jacob0(q),"\n\n", m.endEffectorJacobianHW3(q))
+
+    # compare two methods with tolerance of 10^-6
     return np.allclose(robot.jacob0(q), m.endEffectorJacobianHW3(q), atol=1e-6)
     
 #==============================================================================================================#
 #===========================================<ตรวจคำตอบข้อ 2>====================================================#
 #code here
-def Proof_Singularity():
-    r1 = random.uniform(0,pi)
-    r2 = random.uniform(0,pi)
-    r3 = random.uniform(0,pi)
+def Proof_checkSingularityHW3():
+
+    # Random each joint's angle
+    q1 = random.uniform(0,pi)
+    q2 = random.uniform(0,pi)
+    q3 = random.uniform(0,pi)
 
     #Singularity
     q = [0,0,-0.19] 
 
-    #Random
-    # q = [r1,r2,r3] 
+    #Random (uncomment this to use random value)
+    # q = [q1,q2,q3] 
     
+    # compare two methods that equal to each other   
     return (np.linalg.norm((np.linalg.det(robot.jacob0(q)[:3]))) < 0.001) ==  m.checkSingularityHW3(q)
+
 #==============================================================================================================#
 #===========================================<ตรวจคำตอบข้อ 3>====================================================#
 #code here
 def Proof_computeEffortHW3():
-    r1 = random.uniform(0,pi)
-    r2 = random.uniform(0,pi)
-    r3 = random.uniform(0,pi)
 
-    print(r1,r2,r3)
+    # Random each joint's angle
+    q1 = random.uniform(0,pi)
+    q2 = random.uniform(0,pi)
+    q3 = random.uniform(0,pi)
 
-    q = [r1,r2,r3]
+    print(q1,q2,q3)
 
+    q = [q1,q2,q3]
+
+    # Random wrench 
     w1 = random.uniform(0,pi)
     w2 = random.uniform(0,pi)
     w3 = random.uniform(0,pi)
@@ -84,14 +95,17 @@ def Proof_computeEffortHW3():
 
     w = [w1,w2,w3,w4,w5,w6]
 
+    # use pay to get wrench at end-effector
     tau_roboticstool = robot.pay(w,J=robot.jacobe(q),frame = 1)
+    # tau from 'FRA333_HW3_6556_6558'
     tau = m.computeEffortHW3(q,w)
 
+    #compare
     return np.allclose(tau, -tau_roboticstool, atol=1e-6)
 
 #==============================================================================================================#
 
 #test 
 print(Proof_endEffectorJacobianHW3())
-print(Proof_Singularity())
+print(Proof_checkSingularityHW3())
 print(Proof_computeEffortHW3())
