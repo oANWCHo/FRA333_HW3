@@ -20,17 +20,17 @@ def endEffectorJacobianHW3(q:list[float])->list[float]:
     # get Data from Foward Kinematic in HW3_utils.py
     R,P,R_e,p_e = ut.FKHW3(q)
 
-    # get position each frames
+    # get position each frames relative to frame 0
     P_01 = P[:,0]
     P_02 = P[:,1]
     P_03 = P[:,2]
-    P_0e = P[:,3]
+    P_0e = p_e
 
-    # get rotation each frames
+    # get rotation each frames relative to frame 0
     R_01 = R[:,:,0]
     R_02 = R[:,:,1]
     R_03 = R[:,:,2]
-    R_0e = R[:,:,3]
+    R_0e = R_e
 
     # make a z by Rotation dot [0,0,1]
     z1 = R_01 @ np.array([0.0, 0.0, 1.0])
@@ -63,10 +63,10 @@ def checkSingularityHW3(q:list[float])->bool:
     # get J from 'endEffectorJacobianHW3' Function
     J = endEffectorJacobianHW3(q)
 
-    # Get J_v 
+    # Get reduced J -> J_v 
     J_v = J[0:3]
 
-    # det Jv
+    # find det of reduced Jv
     det_Jv = (
         J_v[0, 0] * (J_v[1, 1]*J_v[2, 2] - J_v[1, 2]*J_v[2, 1])
         - J_v[0, 1] * (J_v[1, 0]*J_v[2, 2] - J_v[1, 2]*J_v[2, 0])
@@ -77,6 +77,7 @@ def checkSingularityHW3(q:list[float])->bool:
     tolerance = 1e-3
     
     # return singularity
+    print("Det of Jacobian from my code : ", abs(det_Jv))
     return abs(det_Jv) < tolerance
 
     
@@ -110,6 +111,6 @@ def computeEffortHW3(q: list[float], w: list[float]) -> list[float]:
     return J_t @ w_0
 
 #==============================================================================================================#
-# print(endEffectorJacobianHW3([0.0,-pi/2,-0.2]))
-# print("Singularity :", checkSingularityHW3([0.0,-pi/2,-0.2]))
-# print("Effort",computeEffortHW3([0.0,-pi/2,-0.2], [1,1,5,1,2,1]))
+print(endEffectorJacobianHW3([0.0,-pi/2,-0.2]))
+print("Singularity :", checkSingularityHW3([0.0,-pi/2,-0.2]))
+print("Effort",computeEffortHW3([0.0,-pi/2,-0.2], [1,1,5,1,2,1]))
