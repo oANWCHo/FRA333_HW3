@@ -250,7 +250,107 @@ Singularity of this taskspace is False!!
 ```
 
 ## Question 3
+This setup involves using a Force Sensor model FT300, which is capable of measuring forces and torques in three dimensions. The sensor is installed at the end-effector of a manipulator with an RRR configuration, enabling the measurement of force and torque values as follows:
 
+$$
+\begin{bmatrix}
+\textit{moment}(n^e) \\
+\textit{force}(f^e)
+\end{bmatrix}
+$$
+
+Write the function to determine the effort exerted by each joint when an external wrench acts on the end-effector in the reference frame.
 ### Solution
+The joint effort of each joint can be calculated using following equations:
+
+$$
+\tau = J^T W
+$$
+
+Where:
+
+- $\tau$ is the effort that affects the Manipulator, represented as $\mathbb{R}^{3 \times 1}$.
+- $J^T$ is the Transposed Jacobian of the Manipulator, represented as $\mathbb{R}^{3 \times 6}$.
+- $W$ is the Wrench that acts on the end-effector in the base frame, represented as $\mathbb{R}^{6 \times 1}$.
+
+```Python
+def computeEffortHW3(q: list[float], w: list[float]) -> list[float]:
+
+    # get Data from Foward Kinematic in HW3_utils.py
+    R,P,R_e,p_e = ut.FKHW3(q)
+
+    # split wrench into force and moment of end-effector frame  
+    force_e = np.array(w[:3])   
+    moment_e = np.array(w[3:])  
+
+    # Dot Rotation matrix of end-effector frame with force and moment to get force and moment at frame 0
+    force_0 = R_e @ force_e
+    moment_0 = R_e @ moment_e
+
+    # and conacate it back to get wrench at frame 0
+    w_0 = np.concatenate((force_0, moment_0), axis=0)
+
+    # get J from 'endEffectorJacobianHW3' Function    
+    J = endEffectorJacobianHW3(q)
+
+    # Transpose Matrix J
+    J_t = np.array(J).T
+
+    # Dot J_t with wrench at frame 0 to get tau    
+    return J_t @ w_0
+```
 
 ### Validation
+Create a function that generates random joint angles and wrenches to compare the joint efforts in my own implementation and computed using the Robotics Toolbox in Python:
+
+```Python
+def Proof_computeEffortHW3():
+
+    # Random each joint's angle
+    q1 = random.uniform(0,pi)
+    q2 = random.uniform(0,pi)
+    q3 = random.uniform(0,pi)
+
+    print(f"Config Space :\nq1 = {q1}, q2 = {q2}, q3 = {q3}")
+
+    q = [q1,q2,q3]
+
+    # Random wrench 
+    w1 = random.uniform(0,pi)
+    w2 = random.uniform(0,pi)
+    w3 = random.uniform(0,pi)
+    w4 = random.uniform(0,pi)
+    w5 = random.uniform(0,pi)
+    w6 = random.uniform(0,pi)
+
+    print(f"At the center of end-effector : \nMx = {w1}, My = {w2}, Mz = {w3}\nFx = {w4}, Fy = {w5}, Fz = {w6}")
+
+    w = [w1,w2,w3,w4,w5,w6]
+
+    # use pay to get wrench at end-effector
+    tau_roboticstool = robot.pay(w,J=robot.jacobe(q),frame = 1)
+
+    # tau from 'FRA333_HW3_6556_6558'
+    tau = m.computeEffortHW3(q,w)
+
+    # compare
+    if np.allclose(tau, -tau_roboticstool, atol=1e-6):
+        print("Joint effort from RTB is equal to Joint effort from my code")
+    else:
+        print("Joint effort from RTB is not equal to Joint effort from my code") 
+```
+
+Run this function:
+```python
+Proof_computeEffortHW3()
+```
+
+Some example of result:
+```
+Config Space :
+q1 = 0.24155096895482703, q2 = 1.793619901010365, q3 = 1.7500993807700733
+At the center of end-effector :
+Mx = 0.3760800656202432, My = 2.0405879780805374, Mz = 2.4474301198244195
+Fx = 1.2517152445198672, Fy = 0.30387990297362, Fz = 2.2657397888852153
+Joint effort from RTB is equal to Joint effort from my code
+```
