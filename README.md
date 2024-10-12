@@ -15,7 +15,7 @@
 ### Robot Modeling
 > The RRR robot can be modeled using Modified Denavit-Hartenberg (MDH) parameters in the Robotics Toolbox for Python.
 
-```
+```python
 import HW3_utils as ut
 import FRA333_HW3_6556_6558 as m
 import roboticstoolbox as rtb
@@ -69,7 +69,7 @@ $$
 
 From these equations, the code can be written as follows:
 
-```
+```python
 def endEffectorJacobianHW3(q:list[float])->list[float]:
 
     # get Data from Foward Kinematic in HW3_utils.py
@@ -112,7 +112,7 @@ def endEffectorJacobianHW3(q:list[float])->list[float]:
 ```
 ### Validation
 Create a function that generates random joint angles and compares the Jacobian in my own implementation and computed using the Robotics Toolbox in Python:
-```
+```python
 def Proof_endEffectorJacobianHW3():
 
     # Random each joint's angle
@@ -132,8 +132,8 @@ def Proof_endEffectorJacobianHW3():
         print("Jacobian Matrix from Robotics Toolbox in python is not equal to Jacobian Matrix from FRA333_HW3_6556_6558.")
 ```
 
-Run Proof_endEffectorJacobianHW3:
-```
+Run this function:
+```python
 Proof_endEffectorJacobianHW3()
 ```
 
@@ -161,4 +161,96 @@ Jacobian Matrix from Robotics Toolbox in python is equal to Jacobian Matrix from
 
 ## Question 2
 
+Let the Taskspace Variable be:
+
+$$
+p_{0,e}^0 = [p_x, p_y, p_z]
+$$
+
+In controlling the RRR robotic arm, there are several positions in the configuration space that can lead to a Singularity, making it impossible to find a solution to the equation. The robot is considered to be in a state of Singularity when:
+
+$$
+\lVert \text{det}(J^*(q)) \rVert < \epsilon
+$$
+
+where $\epsilon = 0.001$, and $J^*(\cdot)$ is the reduced Jacobian matrix.
+
+### Solution
+To find the determinant of a matrix, it must be a square matrix. The Jacobian obtained earlier is a 6x3 matrix, so we need to reduce it to a 3x3 matrix in order to calculate the determinant by cut J_w.
+
+```Python
+def checkSingularityHW3(q:list[float])->bool:
+
+    # get J from 'endEffectorJacobianHW3' Function
+    J = endEffectorJacobianHW3(q)
+
+    # Get reduced J -> J_v
+    J_v = J[0:3]
+
+    # find det of reduced Jv
+    det_Jv = (
+        J_v[0, 0] * (J_v[1, 1]*J_v[2, 2] - J_v[1, 2]*J_v[2, 1])
+        - J_v[0, 1] * (J_v[1, 0]*J_v[2, 2] - J_v[1, 2]*J_v[2, 0])
+        + J_v[0, 2] * (J_v[1, 0]*J_v[2, 1] - J_v[1, 1]*J_v[2, 0])
+    )
+
+    # define tolerance as 10^-3
+    tolerance = 1e-3
+    
+    # return singularity
+    print("Det of Jacobian from my code : ", abs(det_Jv))
+    return abs(det_Jv) < tolerance
+```
+### Validation
+Create a function that generates random joint angles and compares the det of reduced jacobian matrix in my own implementation and computed using the Robotics Toolbox in Python:
+
+```Python
+def Proof_checkSingularityHW3():
+
+    # Random each joint's angle
+    q1 = random.uniform(0,pi)
+    q2 = random.uniform(0,pi)
+    q3 = random.uniform(0,pi)
+
+    #Singularity
+    q = [0,0,-0.19] 
+
+    #Random (uncomment this to use random value)
+    # q = [q1,q2,q3] 
+    
+    # compare two methods that equal to each other
+    print("Det of Jacobian from RTB     : ", np.linalg.norm((np.linalg.det(robot.jacob0(q)[:3]))))   
+    Jacobian_MyCode = m.checkSingularityHW3(q)
+    if (np.linalg.norm((np.linalg.det(robot.jacob0(q)[:3]))) < 0.001) ==  Jacobian_MyCode:
+        print("Det of Jacobian from RTB is equal to Det of Jacobian from my code")
+        print(f"Singularity of this taskspace is {Jacobian_MyCode}!!")
+    else:
+        print("Det of Jacobian from RTB is not equal to Det of Jacobian from my code")
+```
+
+Run this function:
+```Python
+Proof_checkSingularityHW3()
+```
+
+Result of the taskspace that is singularity:
+```
+Det of Jacobian from RTB     :  0.0006664243850487095
+Det of Jacobian from my code :  0.0006664243850487117
+Det of Jacobian from RTB is equal to Det of Jacobian from my code
+Singularity of this taskspace is True!!
+```
+
+Result of the taskspace that is not singularity:
+```
+Det of Jacobian from RTB     :  0.010538854253145597
+Det of Jacobian from my code :  0.010538854664914912
+Det of Jacobian from RTB is equal to Det of Jacobian from my code
+Singularity of this taskspace is False!!
+```
+
 ## Question 3
+
+### Solution
+
+### Validation
