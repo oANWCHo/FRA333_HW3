@@ -354,3 +354,35 @@ Mx = 0.3760800656202432, My = 2.0405879780805374, Mz = 2.4474301198244195
 Fx = 1.2517152445198672, Fy = 0.30387990297362, Fz = 2.2657397888852153
 Joint effort from RTB is equal to Joint effort from my code
 ```
+
+## How to use my code
+### install library
+Install robotics toolbox for python
+
+```
+pip install roboticstoolbox-python
+```
+
+Install numpy version 1.24.4
+
+```
+pip install numpy==1.24.4
+```
+
+### Clone Project
+
+```
+git clone https://github.com/oANWCHo/FRA333_HW3_6556_6558.git
+```
+
+### Run Answers
+
+```
+python FRA333_HW3_6556_6558.py
+```
+
+### Run Test scripts
+
+```
+python testScript.py
+```
